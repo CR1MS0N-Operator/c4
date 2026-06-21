@@ -1,0 +1,84 @@
+version: "3.8"
+
+services:
+  mythic_postgres:
+    image: postgres:15-alpine
+    container_name: {{.Name}}_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: mythic
+      POSTGRES_PASSWORD: mythic_password
+      POSTGRES_DB: mythic_db
+    volumes:
+      - {{.DataDir}}/postgres:/var/lib/postgresql/data
+    networks:
+      - mythic
+
+  mythic_rabbitmq:
+    image: rabbitmq:3-alpine
+    container_name: {{.Name}}_rabbitmq
+    restart: unless-stopped
+    environment:
+      RABBITMQ_DEFAULT_USER: mythic
+      RABBITMQ_DEFAULT_PASS: mythic_password
+    volumes:
+      - {{.DataDir}}/rabbitmq:/var/lib/rabbitmq
+    networks:
+      - mythic
+
+  mythic_server:
+    image: itsafeaturemythic/mythic_server:{{.Version}}
+    container_name: {{.Name}}_server
+    restart: unless-stopped
+    ports:
+      - "{{.Port}}:443"
+    environment:
+      MYTHIC_ADMIN_PASSWORD: admin
+      MYTHIC_POSTGRES_HOST: mythic_postgres
+      MYTHIC_POSTGRES_USER: mythic
+      MYTHIC_POSTGRES_PASSWORD: mythic_password
+      MYTHIC_POSTGRES_DB: mythic_db
+      MYTHIC_RABBITMQ_HOST: mythic_rabbitmq
+      MYTHIC_RABBITMQ_USER: mythic
+      MYTHIC_RABBITMQ_PASSWORD: mythic_password
+      MYTHIC_SERVER_GRPC_PORT: "17444"
+    volumes:
+      - {{.DataDir}}/server:/mythic/
+    networks:
+      - mythic
+    depends_on:
+      - mythic_postgres
+      - mythic_rabbitmq
+
+  mythic_nginx:
+    image: itsafeaturemythic/mythic_nginx:{{.Version}}
+    container_name: {{.Name}}_nginx
+    restart: unless-stopped
+    ports:
+      - "{{.Port}}:443"
+    environment:
+      MYTHIC_SERVER_HOST: mythic_server
+      MYTHIC_DOMAIN: {{.Domain}}
+    networks:
+      - mythic
+    depends_on:
+      - mythic_server
+
+  mythic_jupyter:
+    image: itsafeaturemythic/mythic_jupyter:{{.Version}}
+    container_name: {{.Name}}_jupyter
+    restart: unless-stopped
+    ports:
+      - "8888:8888"
+    volumes:
+      - {{.DataDir}}/jupyter:/home/jovyan/work
+    networks:
+      - mythic
+    depends_on:
+      - mythic_server
+    profiles:
+      - jupyter
+
+networks:
+  mythic:
+    driver: bridge
