@@ -71,7 +71,7 @@ func DefaultConfig() *Config {
 
 // defaultConfigText is the content written when initializing a new config file.
 const defaultConfigText = `# C4 (C2 Control Center) configuration file
-# See https://github.com/ForeverLX/c4 for documentation.
+# See https://github.com/CR1MS0N-Operator/c4 for documentation.
 
 [defaults]
 data_dir = "~/.c4/data"

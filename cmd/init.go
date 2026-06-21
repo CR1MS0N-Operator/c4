@@ -5,7 +5,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/ForeverLX/c4/pkg/config"
+	"github.com/CR1MS0N-Operator/c4/pkg/config"
 	"github.com/spf13/cobra"
 )
 

@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/ForeverLX/c4/pkg/mythic"
-	"github.com/ForeverLX/c4/pkg/provider"
+	"github.com/CR1MS0N-Operator/c4/pkg/mythic"
+	"github.com/CR1MS0N-Operator/c4/pkg/provider"
 	"github.com/spf13/cobra"
 )
 

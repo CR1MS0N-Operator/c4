@@ -8,9 +8,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ForeverLX/c4/pkg/config"
-	"github.com/ForeverLX/c4/pkg/graphql"
-	"github.com/ForeverLX/c4/pkg/provider"
+	"github.com/CR1MS0N-Operator/c4/pkg/config"
+	"github.com/CR1MS0N-Operator/c4/pkg/graphql"
+	"github.com/CR1MS0N-Operator/c4/pkg/provider"
 )
 
 // MythicProvider implements the provider.Provider interface for Mythic.
