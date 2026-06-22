@@ -152,6 +152,7 @@ func Save(path string, cfg *Config) error {
 }
 
 // Init creates a default config file at the given path if it does not exist.
+// Also creates the ~/.c4/providers/ directory for exec provider YAML configs.
 func Init(path string) error {
 	if _, err := os.Stat(path); err == nil {
 		return fmt.Errorf("config already exists at %q", path)
@@ -160,8 +161,10 @@ func Init(path string) error {
 	}
 
 	dir := filepath.Dir(path)
-	if err := os.MkdirAll(dir, 0o755); err != nil {
-		return fmt.Errorf("failed to create config directory %q: %w", dir, err)
+	providersDir := filepath.Join(dir, "providers")
+
+	if err := os.MkdirAll(providersDir, 0o755); err != nil {
+		return fmt.Errorf("failed to create providers directory %q: %w", providersDir, err)
 	}
 
 	if err := os.WriteFile(path, []byte(defaultConfigText), 0o600); err != nil {

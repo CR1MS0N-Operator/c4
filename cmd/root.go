@@ -93,6 +93,7 @@ func addSubcommands() {
 	rootCmd.AddCommand(configCmd)
 	rootCmd.AddCommand(startCmd)
 	rootCmd.AddCommand(stopCmd)
+	rootCmd.AddCommand(detectCmd)
 }
 
 func init() {

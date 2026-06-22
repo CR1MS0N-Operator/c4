@@ -2,9 +2,11 @@ package cmd
 
 import (
 	"bufio"
+	"context"
 	"fmt"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/spf13/cobra"
 )
@@ -33,9 +35,46 @@ var destroyCmd = &cobra.Command{
 			}
 		}
 
-		fmt.Printf("Destroying %s instance... (not yet implemented)\n", c2)
-		return nil
+		switch c2 {
+		case "mythic":
+			return destroyMythic()
+		default:
+			return destroyExec(c2)
+		}
 	},
+}
+
+func destroyMythic() error {
+	return fmt.Errorf("mythic destroy: not yet implemented (use 'c4 stop mythic')")
+}
+
+func destroyExec(name string) error {
+	providers, err := loadExecProviders()
+	if err != nil {
+		return fmt.Errorf("load exec providers: %w", err)
+	}
+
+	var target interface{ Destroy(ctx context.Context) error }
+	for _, p := range providers {
+		if p.Name() == name {
+			target = p
+			break
+		}
+	}
+
+	if target == nil {
+		return fmt.Errorf("unknown C2: %q (no exec provider found in ~/.c4/providers/)", name)
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+	defer cancel()
+
+	if err := target.Destroy(ctx); err != nil {
+		return fmt.Errorf("destroy %s: %w", name, err)
+	}
+
+	fmt.Printf("Exec provider '%s' destroyed\n", name)
+	return nil
 }
 
 func init() {

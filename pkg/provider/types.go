@@ -10,6 +10,8 @@ type Type string
 const (
 	TypeMythic  Type = "Mythic"
 	TypeSliver  Type = "Sliver"
+	TypeHavoc   Type = "Havoc"
+	TypeExec    Type = "Exec"
 	TypeUnknown Type = "Unknown"
 )
 
