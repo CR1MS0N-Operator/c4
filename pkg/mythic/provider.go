@@ -293,21 +293,95 @@ func (p *MythicProvider) StopListener(ctx context.Context, id string) error {
 
 	return nil
 }
+// callbackResponse is used to unmarshal the callback query.
+type callbackResponse struct {
+	Data struct {
+		Callbacks []mythicCallback `json:"callback"`
+	} `json:"data"`
+}
+
+type mythicCallback struct {
+	ID             int    `json:"id"`
+	DisplayID      int    `json:"display_id"`
+	IP             string `json:"ip"`
+	Host           string `json:"host"`
+	User           string `json:"user"`
+	ProcessName    string `json:"process_name"`
+	PID            int    `json:"pid"`
+	OS             string `json:"os"`
+	Architecture   string `json:"architecture"`
+	LastCheckin    string `json:"last_checkin"`
+	SleepInfo      string `json:"sleep_info"`
+	Description    string `json:"description"`
+	Domain         string `json:"domain"`
+}
+
+// payloadResponse is used to unmarshal the payload query.
+type payloadResponse struct {
+	Data struct {
+		Payloads []mythicPayload `json:"payload"`
+	} `json:"data"`
+}
+
+type mythicPayload struct {
+	ID          int    `json:"id"`
+	UUID        string `json:"uuid"`
+	Description string `json:"description"`
+	AutoGen     bool   `json:"auto_generated"`
+	BuildPhase  string `json:"build_phase"`
+	PayloadTypeSemver string `json:"payload_type_semver"`
+	OS          string `json:"os"`
+	CreationTime string `json:"creation_time"`
+}
 
 // Callbacks returns active callbacks from Mythic.
-func (p *MythicProvider) Callbacks(_ context.Context) ([]provider.Callback, error) {
-	return nil, fmt.Errorf("not yet implemented")
+func (p *MythicProvider) Callbacks(ctx context.Context) ([]provider.Callback, error) {
+	if p.client == nil {
+		return []provider.Callback{}, fmt.Errorf("not connected — call Connect first")
+	}
+
+	var resp callbackResponse
+	if err := p.client.Do(ctx, `{ callback(where: {active: {_eq: true}}, order_by: {last_checkin: desc}) { id display_id ip host user process_name pid os architecture last_checkin sleep_info description domain } }`, &resp); err != nil {
+		return []provider.Callback{}, fmt.Errorf("list callbacks: %w", err)
+	}
+
+	callbacks := make([]provider.Callback, 0, len(resp.Data.Callbacks))
+	for _, c := range resp.Data.Callbacks {
+		callbacks = append(callbacks, provider.Callback{
+			ID:       strconv.Itoa(c.ID),
+			Listener: c.Description,
+			Agent:    fmt.Sprintf("%s/%s", c.OS, c.Architecture),
+			Host:     c.Host,
+			User:     c.User,
+			PID:      c.PID,
+			Status:   provider.StatusRunning,
+		})
+	}
+
+	return callbacks, nil
 }
 
 // Payloads returns payloads known to Mythic.
-func (p *MythicProvider) Payloads(_ context.Context) ([]provider.Payload, error) {
-	return nil, fmt.Errorf("not yet implemented")
-}
+func (p *MythicProvider) Payloads(ctx context.Context) ([]provider.Payload, error) {
+	if p.client == nil {
+		return []provider.Payload{}, fmt.Errorf("not connected — call Connect first")
+	}
 
-// GeneratePayload generates a new Mythic payload.
-func (p *MythicProvider) GeneratePayload(_ context.Context, _ map[string]any) (*provider.Payload, error) {
-	return nil, fmt.Errorf("not yet implemented")
-}
+	var resp payloadResponse
+	if err := p.client.Do(ctx, `{ payload { id uuid description auto_generated build_phase payload_type_semver os creation_time } }`, &resp); err != nil {
+		return []provider.Payload{}, fmt.Errorf("list payloads: %w", err)
+	}
 
-// Ensure MythicProvider implements provider.Provider.
-var _ provider.Provider = (*MythicProvider)(nil)
+	payloads := make([]provider.Payload, 0, len(resp.Data.Payloads))
+	for _, p2 := range resp.Data.Payloads {
+		payloads = append(payloads, provider.Payload{
+			ID:       strconv.Itoa(p2.ID),
+			Name:     p2.Description,
+			Type:     p2.PayloadTypeSemver,
+			Format:   p2.BuildPhase,
+			FilePath: p2.UUID,
+		})
+	}
+
+	return payloads, nil
+}
