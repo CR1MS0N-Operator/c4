@@ -45,6 +45,16 @@ func New(cfg ExecConfig) *Provider {
 	return &Provider{name: cfg.Name, cfg: cfg}
 }
 
+// Type returns the provider type (Exec).
+func (p *Provider) Type() provider.Type {
+	return provider.TypeExec
+}
+
+// Name returns the provider instance name.
+func (p *Provider) Name() string {
+	return p.name
+}
+
 // Load reads a YAML file and returns an ExecConfig.
 func Load(path string) (*ExecConfig, error) {
 	raw, err := os.ReadFile(path)
@@ -68,6 +78,7 @@ func Load(path string) (*ExecConfig, error) {
 }
 
 // LoadDir scans a directory for *.yaml files and loads each as an exec config.
+// Returns all successfully loaded configs along with any errors encountered.
 func LoadDir(dir string) ([]ExecConfig, error) {
 	entries, err := os.ReadDir(dir)
 	if err != nil {
@@ -78,27 +89,28 @@ func LoadDir(dir string) ([]ExecConfig, error) {
 	}
 
 	var configs []ExecConfig
+	var errs []error
 	for _, e := range entries {
 		if e.IsDir() || !strings.HasSuffix(e.Name(), ".yaml") {
 			continue
 		}
 		cfg, err := Load(filepath.Join(dir, e.Name()))
 		if err != nil {
-			return configs, fmt.Errorf("loading %s: %w", e.Name(), err)
+			errs = append(errs, fmt.Errorf("loading %s: %w", e.Name(), err))
+			continue
 		}
 		configs = append(configs, *cfg)
 	}
+
+	if len(errs) > 0 {
+		// Return partial results with combined error
+		msg := make([]string, len(errs))
+		for i, e := range errs {
+			msg[i] = e.Error()
+		}
+		return configs, fmt.Errorf("errors loading providers: %s", strings.Join(msg, "; "))
+	}
 	return configs, nil
-}
-
-// Type returns the provider type (Exec).
-func (p *Provider) Type() provider.Type {
-	return provider.TypeExec
-}
-
-// Name returns the provider instance name.
-func (p *Provider) Name() string {
-	return p.name
 }
 
 // Connect validates that the configured start command binary exists.
@@ -200,8 +212,8 @@ func (p *Provider) httpHealth(ctx context.Context) (*provider.HealthCheckResult,
 	}, nil
 }
 
-func (p *Provider) cmdHealth(_ context.Context) (*provider.HealthCheckResult, error) {
-	cmd := exec.Command("sh", "-c", p.cfg.Health.Cmd)
+func (p *Provider) cmdHealth(ctx context.Context) (*provider.HealthCheckResult, error) {
+	cmd := exec.CommandContext(ctx, "sh", "-c", p.cfg.Health.Cmd)
 	if err := cmd.Run(); err != nil {
 		return &provider.HealthCheckResult{
 			Healthy: false, Message: fmt.Sprintf("health command exited non-zero: %s", err.Error()),

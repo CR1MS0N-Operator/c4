@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/CR1MS0N-Operator/c4/pkg/execprovider"
 	"github.com/spf13/cobra"
 )
 
@@ -54,7 +55,7 @@ func destroyExec(name string) error {
 		return fmt.Errorf("load exec providers: %w", err)
 	}
 
-	var target interface{ Destroy(ctx context.Context) error }
+	var target *execprovider.Provider
 	for _, p := range providers {
 		if p.Name() == name {
 			target = p

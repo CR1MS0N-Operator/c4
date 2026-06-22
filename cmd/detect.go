@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/CR1MS0N-Operator/c4/pkg/detect"
+	"github.com/CR1MS0N-Operator/c4/pkg/provider"
 	"github.com/spf13/cobra"
 )
 
@@ -79,7 +80,7 @@ func applyDetect(results []detect.DetectionResult) error {
 
 	applied := 0
 	for _, res := range results {
-		if res.Type == "Mythic" || res.Type == "Exec" {
+		if res.Type == provider.TypeMythic || res.Type == provider.TypeExec {
 			// Skip Mythic — already in c4.toml, not exec config
 			// Skip exec — already configured
 			continue

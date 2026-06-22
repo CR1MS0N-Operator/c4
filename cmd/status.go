@@ -146,7 +146,3 @@ func displayExecStatus(p *execprovider.Provider) {
 		printHealthTable(rootLogger, name, "Exec", "Stopped", "", "", health.Message)
 	}
 }
-
-func init() {
-	_ = os.Stdout
-}
