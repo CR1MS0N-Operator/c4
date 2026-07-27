@@ -2,4 +2,4 @@
 package c4lib
 
 // Version is the current C4 CLI version.
-const Version = "0.1.0-dev"
+const Version = "0.1.0"
