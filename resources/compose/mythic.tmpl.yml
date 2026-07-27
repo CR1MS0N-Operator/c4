@@ -1,5 +1,10 @@
 version: "3.8"
 
+# All secrets can be overridden via environment variables at runtime.
+# Prefix any Compose environment variable with the service name,
+# e.g. `MYTHIC_POSTGRES_PASSWORD=mysecret` to override the default.
+# Hasura secrets live in the C4 config file (~/.c4/c4.toml) under [hasura].
+
 services:
   mythic_postgres:
     image: postgres:15-alpine
