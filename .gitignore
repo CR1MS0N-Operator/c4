@@ -1,1 +1,9 @@
 c4
+
+graphify-out/
+
+node_modules/
+
+ dist/
+
+*.log
