@@ -5,7 +5,7 @@
 
 C4 is a command-line control center for deploying, managing, and destroying Command & Control (C2) frameworks from one interface. It targets [Mythic](https://github.com/its-a-feature/Mythic) and Sliver, orchestrating containers via Docker Compose and talking to a GraphQL (Hasura) backend for configuration and state.
 
-Built for red teams and adversary-emulation work, C4 turns the repetitive lifecycle of standing up and tearing down C2 infrastructure — deploy, start, stop, destroy — into a few deterministic commands, with listener, callback, and payload management on top.
+Built for adversary-emulation across the [CR1MS0N continuous adversarial validation platform](https://github.com/CR1MS0N-Operator/veil), C4 turns the repetitive lifecycle of standing up and tearing down C2 infrastructure — deploy, start, stop, destroy — into a few deterministic commands, with listener, callback, and payload management on top.
 
 ## Features
 
@@ -108,13 +108,25 @@ c4 destroy mythic
 - Docker Engine 24+ with Docker Compose v2
 - A Hasura GraphQL endpoint (configured via `c4 init`)
 
+## Role in the CR1MS0N platform
+
+C4 is the **C2 validation engine** of the [CR1MS0N continuous adversarial validation platform](https://github.com/CR1MS0N-Operator/veil). Where the platform runs CTEM-style **Validate**-phase emulation, C4 is the tool that materializes the C2 layer on demand — deploying, monitoring, and destroying Mythic/Sliver instances so emulated operations stand up in minutes and tear down cleanly. Deterministic lifecycle and reproducible teardown guarantee every engagement starts from a known-good state.
+
+| Framework | C4's Role |
+|-----------|-----------|
+| **CTEM** (Continuous Threat Exposure Management) | **Validate** — deploys/manages/destroys the C2 frameworks used for adversarial emulation against validated infrastructure |
+| **AEV** (Adversarial Exposure Validation) | Provides the reproducible C2 lifecycle that the platform's emulation and measurement depend on |
+| **GRC Engineering** | Scriptable, deterministic lifecycle plus JSON logs produce audit-ready evidence of *what* C2 ran and *for how long* |
+
+**Sibling projects:** [Veil](https://github.com/CR1MS0N-Operator/veil) (validation substrate) · [NightForge](https://github.com/CR1MS0N-Operator/nightforge) (measurement & mobilization) · [Lantern](https://github.com/CR1MS0N-Operator/ACLGuard-Active-Directory-Permission-Auditor) (identity exposure validation).
+
 ## Ecosystem
 
-C4 is part of the CR1MS0N-Operator toolset:
+C4 is part of the CR1MS0N-Operator toolset, where each repo owns one facet of the continuous adversarial validation cycle:
 
-- [Veil](https://github.com/CR1MS0N-Operator/veil) — production-grade red team infrastructure as code (multi-node WireGuard mesh, Mythic C2)
-- [NightForge](https://github.com/CR1MS0N-Operator/nightforge) — reproducible Arch Linux red team operator workstation
-- [Lantern](https://github.com/CR1MS0N-Operator/ACLGuard-Active-Directory-Permission-Auditor) — Active Directory identity exposure validation
+- [Veil](https://github.com/CR1MS0N-Operator/veil) — validation substrate: the WireGuard mesh, sensors, and emulation targets C4's C2 operates against
+- [NightForge](https://github.com/CR1MS0N-Operator/nightforge) — measurement & mobilization layer: the 10-layer harness and `harnessd` dashboard that turn C4's emulation evidence into decisions
+- [Lantern](https://github.com/CR1MS0N-Operator/ACLGuard-Active-Directory-Permission-Auditor) — identity exposure validation: AD permission auditing feeding Discover/Prioritize/Validate
 
 ## License
 
