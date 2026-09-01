@@ -1,9 +1,23 @@
 version: "3.8"
 
+# ──────────────────────────────────────────────────────────────────────────────
+#  ⚠️  DEPLOYMENT WARNING — READ BEFORE DEPLOYING
+#
+#  The passwords below are PLACEHOLDERS for local development only.
+#  ALL default passwords (mythic_password, admin) MUST be changed before any
+#  real deployment. Override via environment variables at runtime:
+#
+#    MYTHIC_ADMIN_PASSWORD=<strong-password>
+#    MYTHIC_POSTGRES_PASSWORD=<strong-password>
+#    MYTHIC_RABBITMQ_PASSWORD=<strong-password>
+#
+#  Never deploy with default credentials to an internet-exposed host.
+#  Hasura secrets live in the C4 config file (~/.c4/c4.toml) under [hasura].
+# ──────────────────────────────────────────────────────────────────────────────
+
 # All secrets can be overridden via environment variables at runtime.
 # Prefix any Compose environment variable with the service name,
 # e.g. `MYTHIC_POSTGRES_PASSWORD=mysecret` to override the default.
-# Hasura secrets live in the C4 config file (~/.c4/c4.toml) under [hasura].
 
 services:
   mythic_postgres:
@@ -11,6 +25,7 @@ services:
     container_name: {{.Name}}_postgres
     restart: unless-stopped
     environment:
+      # WARNING: Change POSTGRES_PASSWORD before production deployment!
       POSTGRES_USER: mythic
       POSTGRES_PASSWORD: mythic_password
       POSTGRES_DB: mythic_db
@@ -25,6 +40,7 @@ services:
     restart: unless-stopped
     environment:
       RABBITMQ_DEFAULT_USER: mythic
+      # WARNING: Change RABBITMQ_DEFAULT_PASS before production deployment!
       RABBITMQ_DEFAULT_PASS: mythic_password
     volumes:
       - {{.DataDir}}/rabbitmq:/var/lib/rabbitmq
@@ -38,13 +54,16 @@ services:
     ports:
       - "{{.Port}}:443"
     environment:
+      # WARNING: Change MYTHIC_ADMIN_PASSWORD before production deployment!
       MYTHIC_ADMIN_PASSWORD: admin
       MYTHIC_POSTGRES_HOST: mythic_postgres
       MYTHIC_POSTGRES_USER: mythic
+      # WARNING: Change MYTHIC_POSTGRES_PASSWORD before production deployment!
       MYTHIC_POSTGRES_PASSWORD: mythic_password
       MYTHIC_POSTGRES_DB: mythic_db
       MYTHIC_RABBITMQ_HOST: mythic_rabbitmq
       MYTHIC_RABBITMQ_USER: mythic
+      # WARNING: Change MYTHIC_RABBITMQ_PASSWORD before production deployment!
       MYTHIC_RABBITMQ_PASSWORD: mythic_password
       MYTHIC_SERVER_GRPC_PORT: "17444"
     volumes:

@@ -1,7 +1,7 @@
 # C4 — C2 Control Center
 
-[![Go version](https://img.shields.io/badge/Go-1.26-00ADD8?logo=go&logoColor=white)](https://go.dev/dl/)
-[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![Go version](https://img.shields.io/badge/Go-1.26-00ADD8?logo=go&logoColor=white&style=flat-square)](https://go.dev/dl/)
+[![License](https://img.shields.io/badge/license-MIT-blue?style=flat-square)](LICENSE)
 
 C4 is a command-line control center for deploying, managing, and destroying Command & Control (C2) frameworks from one interface. It targets [Mythic](https://github.com/its-a-feature/Mythic) and Sliver, orchestrating containers via Docker Compose and talking to a GraphQL (Hasura) backend for configuration and state.
 
