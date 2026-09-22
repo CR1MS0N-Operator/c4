@@ -1,0 +1,81 @@
+{
+  "types": [
+    {
+      "type": "feat",
+      "section": "Features",
+      "description": "A new feature"
+    },
+    {
+      "type": "fix",
+      "section": "Bug Fixes",
+      "description": "A bug fix"
+    },
+    {
+      "type": "docs",
+      "section": "Documentation",
+      "description": "Documentation only changes"
+    },
+    {
+      "type": "style",
+      "section": "Styles",
+      "description": "Changes that do not affect the meaning of the code"
+    },
+    {
+      "type": "refactor",
+      "section": "Code Refactoring",
+      "description": "A code change that neither fixes a bug nor adds a feature"
+    },
+    {
+      "type": "perf",
+      "section": "Performance Improvements",
+      "description": "A code change that improves performance"
+    },
+    {
+      "type": "test",
+      "section": "Tests",
+      "description": "Adding missing tests or correcting existing tests"
+    },
+    {
+      "type": "chore",
+      "section": "Chores",
+      "description": "Changes to the build process or auxiliary tools"
+    },
+    {
+      "type": "ci",
+      "section": "CI/CD",
+      "description": "Changes to CI configuration files and scripts"
+    },
+    {
+      "type": "security",
+      "section": "Security",
+      "description": "Security-related changes"
+    },
+    {
+      "type": "breaking",
+      "section": "Breaking Changes",
+      "description": "Breaking changes that require major version bump"
+    },
+    {
+      "type": "build",
+      "section": "Build System",
+      "description": "Changes that affect the build system or external dependencies"
+    },
+    {
+      "type": "revert",
+      "section": "Reverts",
+      "description": "Reverts a previous commit"
+    }
+  ],
+  "scopes": [
+    "cmd",
+    "pkg",
+    "internal",
+    "api",
+    "config",
+    "deps",
+    "test"
+  ],
+  "subjectLimit": 72,
+  "bodyLineLimit": 100,
+  "footerLineLimit": 100
+}
