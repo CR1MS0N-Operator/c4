@@ -6,7 +6,7 @@ C4 is a CLI control center for deploying, managing, and destroying C2 frameworks
 
 - **Language:** Go 1.26
 - **CLI:** Cobra
-- **Infrastructure:** Docker Compose
+- **Infrastructure:** Docker Compose, Podman Quadlet
 - **Backend:** GraphQL (Hasura) for state management
 
 ## Structure
