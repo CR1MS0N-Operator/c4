@@ -62,6 +62,8 @@ c4 destroy mythic
 
 ## Architecture
 
+See [ARCHITECTURE.md](ARCHITECTURE.md) for the package layout, provider abstraction, and data flow.
+
 ```
                     ┌──────────────────────────────────┐
                     │            c4 CLI (cmd/)          │
@@ -127,6 +129,13 @@ C4 is part of the CR1MS0N-Operator toolset, where each repo owns one facet of th
 - [Veil](https://github.com/CR1MS0N-Operator/veil) — validation substrate: the WireGuard mesh, sensors, and emulation targets C4's C2 operates against
 - [NightForge](https://github.com/CR1MS0N-Operator/nightforge) — measurement & mobilization layer: the 10-layer harness and `harnessd` dashboard that turn C4's emulation evidence into decisions
 - [Lantern](https://github.com/CR1MS0N-Operator/ACLGuard-Active-Directory-Permission-Auditor) — identity exposure validation: AD permission auditing feeding Discover/Prioritize/Validate
+
+## Documentation
+
+- [ARCHITECTURE.md](ARCHITECTURE.md) — package layout, provider abstraction, data flow
+- [CONTRIBUTING.md](CONTRIBUTING.md) — development setup, commit conventions, branch workflow
+- [SECURITY.md](SECURITY.md) — vulnerability reporting policy
+- [WORKTREES.md](WORKTREES.md) — dispatch isolation runbook for treehouse worktrees
 
 ## License
 

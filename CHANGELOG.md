@@ -7,6 +7,9 @@ All notable changes to C4. Format follows [Keep a Changelog](https://keepachange
 ### Added
 - CONTRIBUTING.md, CHANGELOG.md, and root SECURITY.md for cross-repo consistency
 - Deployment warning in `resources/compose/mythic.tmpl.yml` — change default passwords before deployment
+- ARCHITECTURE.md — package layout, provider abstraction, and data flow; linked from README
+- WORKTREES.md — dispatch isolation runbook for treehouse worktrees (branch-before-commit, commit-in-worktree, reachability check)
+- `treehouse.toml` — explicit worktree pool config (`root`, `max_trees`, `base_branch = "main"`)
 
 ### Changed
 - Go and License badges switched to `flat-square` style
