@@ -13,6 +13,11 @@ Only Rust, Go and C/C++ ship first-party software:
 - **Tools and scripts** — first-party CLIs, gates, helpers → **Go**, standard library only.
 - **C/C++** — only when a measurement shows a drastic difference; never a default, never a preference.
 
+**Browser UI is the one scoped exception (decision #290).** TypeScript is permitted for code that runs
+in a browser when an application genuinely needs a framework; services and APIs stay Rust/Go, and a
+TypeScript/Node backend is a violation, not an application of the exception. Static/content sites are
+content, not software.
+
 **This repo is a tool (Go) — c4 is a first-party CLI that drives C2 lifecycles.** New code uses the standard library only; the existing Cobra/Viper/zerolog dependencies predate this rule.
 
 Authority: decision #289 and `~/Documents/ai-lab-vault/AGENTS.md` § "Language policy". Open point: existing shell glue is thin operator glue, not software, and stays until touched.
