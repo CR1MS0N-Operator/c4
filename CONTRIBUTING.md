@@ -79,6 +79,29 @@ chore: bump Go 1.26
 4. Review the diff before committing/PRing.
 5. Open a PR against `main` with a summary of what changed and verification evidence.
 
+### Dispatched workers (treehouse worktrees)
+
+If you were dispatched into a **treehouse worktree** rather than a normal
+clone, the worktree arrives at **detached HEAD** — `git rev-parse
+--abbrev-ref HEAD` prints `HEAD`, not a branch name. Create your branch before
+the first edit or commit:
+
+```bash
+git switch -c <bead-id>          # e.g. git switch -c c4-0mn
+git rev-parse --abbrev-ref HEAD  # must print <bead-id>
+```
+
+A commit made on a detached HEAD is referenced by no branch: it is not
+reachable by name, it is prunable, and `treehouse destroy --include-unlanded`
+discards it. Commit **inside the worktree**, never against the shared
+checkout, and confirm reachability before reporting done:
+
+```bash
+git -C ~/Projects/c4 rev-parse <bead-id>   # must print your commit sha
+```
+
+Full runbook: [WORKTREES.md](WORKTREES.md).
+
 ## Guardrails
 
 - **Do not destroy** live C2 instances without explicit operator confirmation.
