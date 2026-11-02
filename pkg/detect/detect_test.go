@@ -2,6 +2,7 @@ package detect
 
 import (
 	"context"
+	"encoding/json"
 	"os"
 	"path/filepath"
 	"testing"
@@ -14,6 +15,9 @@ func TestCheckInstallPaths_EmptyToolsDir(t *testing.T) {
 	results := r.checkInstallPaths()
 	if len(results) != 0 {
 		t.Errorf("got %d results, want 0", len(results))
+	}
+	if results == nil {
+		t.Error("checkInstallPaths() returned nil, want empty slice")
 	}
 }
 
@@ -98,6 +102,9 @@ func TestCheckExecProviders_EmptyDir(t *testing.T) {
 	if len(results) != 0 {
 		t.Errorf("got %d results, want 0", len(results))
 	}
+	if results == nil {
+		t.Error("checkExecProviders() returned nil, want empty slice")
+	}
 }
 
 func TestCheckExecProviders_WithConfigs(t *testing.T) {
@@ -153,5 +160,35 @@ func TestRunAll_EmptySystem(t *testing.T) {
 	results := r.RunAll(context.Background())
 	if results == nil {
 		t.Fatal("RunAll() returned nil, want empty slice")
+	}
+}
+
+// TestRunAll_EmptySystemMarshalsToArray pins the reason the empty slice
+// matters: `c4 detect --json` must emit [] and not null.
+func TestRunAll_EmptySystemMarshalsToArray(t *testing.T) {
+	r := &Runner{homeDir: t.TempDir()}
+	out, err := json.Marshal(r.RunAll(context.Background()))
+	if err != nil {
+		t.Fatalf("marshal: %v", err)
+	}
+	if string(out) != "[]" {
+		t.Errorf("RunAll() marshalled to %s, want []", out)
+	}
+}
+
+// TestSubChecksNeverReturnNil locks the package contract on the error paths:
+// a sub-check that cannot run reports zero results, not nil.
+func TestSubChecksNeverReturnNil(t *testing.T) {
+	r := &Runner{homeDir: t.TempDir()}
+	checks := map[string][]DetectionResult{
+		"checkInstallPaths":  r.checkInstallPaths(),
+		"checkDocker":        r.checkDocker(context.Background()),
+		"checkProcesses":     r.checkProcesses(context.Background()),
+		"checkExecProviders": r.checkExecProviders(),
+	}
+	for name, results := range checks {
+		if results == nil {
+			t.Errorf("%s() returned nil, want empty slice", name)
+		}
 	}
 }

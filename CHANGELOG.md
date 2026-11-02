@@ -11,6 +11,9 @@ All notable changes to C4. Format follows [Keep a Changelog](https://keepachange
 ### Changed
 - Go and License badges switched to `flat-square` style
 
+### Fixed
+- `c4 detect` now returns an empty result set instead of nil — `c4 detect --json` emits `[]` rather than `null` when nothing is found
+
 ## [0.1.0] — 2026-07-26
 
 First tagged release. C2 Control Center for the CR1MS0N platform — deploy, manage, and destroy Mythic C2 instances from one CLI.
