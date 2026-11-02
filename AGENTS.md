@@ -5,6 +5,18 @@ C4 is the **C2 Control Center** for the CR1MS0N continuous adversarial validatio
 
 Pairs with [[nightforge]] (measurement/mobilization) and [[veil]] (validation substrate).
 
+## Language policy (operator rule, 2026-11-01, decision #289)
+
+Only Rust, Go and C/C++ ship first-party software:
+
+- **Big projects** — services, long-lived programs, substantial internal logic → **Rust**, as much as possible.
+- **Tools and scripts** — first-party CLIs, gates, helpers → **Go**, standard library only.
+- **C/C++** — only when a measurement shows a drastic difference; never a default, never a preference.
+
+**This repo is a tool (Go) — c4 is a first-party CLI that drives C2 lifecycles.** New code uses the standard library only; the existing Cobra/Viper/zerolog dependencies predate this rule.
+
+Authority: decision #289 and `~/Documents/ai-lab-vault/AGENTS.md` § "Language policy". Open point: existing shell glue is thin operator glue, not software, and stays until touched.
+
 ## Stack
 - **Language:** Go 1.26+
 - **CLI:** Cobra
