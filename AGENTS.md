@@ -5,6 +5,23 @@ C4 is the **C2 Control Center** for the CR1MS0N continuous adversarial validatio
 
 Pairs with [[nightforge]] (measurement/mobilization) and [[veil]] (validation substrate).
 
+## Language policy (operator rule, 2026-11-01, decision #289)
+
+Only Rust, Go and C/C++ ship first-party software:
+
+- **Big projects** — services, long-lived programs, substantial internal logic → **Rust**, as much as possible.
+- **Tools and scripts** — first-party CLIs, gates, helpers → **Go**, standard library only.
+- **C/C++** — only when a measurement shows a drastic difference; never a default, never a preference.
+
+**Browser UI is the one scoped exception (decision #290).** TypeScript is permitted for code that runs
+in a browser when an application genuinely needs a framework; services and APIs stay Rust/Go, and a
+TypeScript/Node backend is a violation, not an application of the exception. Static/content sites are
+content, not software.
+
+**This repo is a tool (Go) — c4 is a first-party CLI that drives C2 lifecycles.** New code uses the standard library only; the existing Cobra/Viper/zerolog dependencies predate this rule.
+
+Authority: decision #289 and `~/Documents/ai-lab-vault/AGENTS.md` § "Language policy". Open point: existing shell glue is thin operator glue, not software, and stays until touched.
+
 ## Stack
 - **Language:** Go 1.26+
 - **CLI:** Cobra
@@ -76,3 +93,10 @@ For multi-step work (provider addition, lifecycle changes, compose refactor):
 - Platform context: [[ai-lab-vault|AGENTS.md]]
 - NightForge: [[nightforge]]
 - Veil: [[veil]]
+
+## Live state outranks the record (fleet rule, 2026-10-26)
+
+A measurement taken now outranks any document, skill or config that contradicts it — including this
+file. Never pin live facts (model ids, prices, ports, paths, versions) in docs or skills: name the role
+and resolve it live. Before a dispatch, run `cr1ms0n-fleet-check` (it fails loudly on a dead pin).
+Canonical rule and its origin: `~/Documents/ai-lab-vault/AGENTS.md` § "Live state outranks the record".
