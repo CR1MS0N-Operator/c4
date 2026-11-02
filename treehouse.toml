@@ -1,0 +1,34 @@
+# treehouse.toml — per-repo worktree pool for the c4 repository.
+#
+# Bead: c4-0mn (P0 dispatch isolation; exec:dsh worker lane, 2026-10-19).
+# Pattern copied from the vault's treehouse.toml (bead ai-lab-vault-f6yz):
+# the pool root and max_trees are DECLARED, not inferred from $HOME or from a
+# stray TREEHOUSE_ROOT, so a dispatched worker always leases a predictable slot
+# and a stale feature branch cannot silently become the cut point.
+#
+# Runbook + fail-closed matrix: ai-lab-vault/.dsh-work/phase-a/egress/DISPATCH-ISOLATION.md
+# This repo previously had NO config and treehouse still provisioned a pool on
+# demand (~/.treehouse/c4-627598); this file makes that pool explicit.
+
+# Explicit pool size. Slots are pre-warmed; 16 matches the vault's pool.
+max_trees = 16
+
+# Explicit pool root. treehouse places slots under {root}/.treehouse/, so this
+# resolves to /home/cr1ms0n/.treehouse/c4-627598/{slot}/c4 — the pool the fleet
+# already uses (firstmate fm/c4-t21 is leased in slot 1). Written explicitly so
+# an environment change (or an unset HOME in a unit) cannot move the pool.
+root = "/home/cr1ms0n"
+
+# base_branch = "main": deliberate, because main is this repository's real trunk
+# and it is CURRENT.
+#   * origin is https://github.com/CR1MS0N-Operator/c4.git and origin/HEAD ->
+#     refs/remotes/origin/main, i.e. main is the repository default.
+#   * the shared checkout is on main (0 ahead / 0 behind origin/main at the
+#     time of writing), so cutting from main is exactly what treehouse already
+#     inferred ("base main (repository default)"). Pinning it changes nothing
+#     today but removes the inference step that could silently go stale.
+#   * contrast with the vault, where base_branch is left unset because its
+#     "main" is 185 commits behind the session branch. c4 has no such second
+#     trunk; there is no stale-main hazard to infer around, so pinning is safe
+#     and makes the cut point auditable.
+base_branch = "main"
