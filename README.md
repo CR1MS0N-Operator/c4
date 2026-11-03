@@ -51,7 +51,7 @@ c4 destroy mythic
 | `c4 init`          | Generate a default configuration at `~/.c4/c4.toml` |
 | `c4 deploy <c2>`   | Deploy or start a C2 instance            |
 | `c4 destroy <c2>`  | Destroy a C2 instance                    |
-| `c4 status [c2]`   | Show C2 instance status (default: mythic)|
+| `c4 status [c2]`   | Show C2 instance status (default: mythic) |
 | `c4 start <c2>`    | Start an existing C2 instance            |
 | `c4 stop <c2>`     | Stop a running C2 instance               |
 | `c4 listener`      | Manage C2 listeners                      |
