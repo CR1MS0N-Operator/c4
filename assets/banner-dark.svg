@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="320" viewBox="0 0 1200 320" role="img" aria-labelledby="title desc">
+  <title id="title">C4 — The control plane.</title>
+  <desc id="desc">A crimson systems blueprint: one central control point connects four infrastructure nodes.</desc>
+  <defs>
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M40 0H0V40" fill="none" stroke="#303846" stroke-width="0.6"/>
+    </pattern>
+    <radialGradient id="glow">
+      <stop stop-color="#ff5c77" stop-opacity="0.13"/>
+      <stop offset="1" stop-color="#ff5c77" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="1200" height="320" rx="12" fill="#0d1117"/>
+  <rect x="1" y="1" width="1198" height="318" rx="11" fill="url(#grid)"/>
+  <ellipse cx="957" cy="160" rx="255" ry="190" fill="url(#glow)"/>
+  <path d="M44 30H128" stroke="#ff5c77" stroke-width="3"/>
+  <g font-family="ui-monospace, 'DejaVu Sans Mono', monospace">
+    <text x="44" y="65" fill="#aab4c0" font-size="15" letter-spacing="2.5">CR1MS0N / SECURITY TOOLING</text>
+    <text x="38" y="171" fill="#f0f3f6" font-size="104" font-weight="700" letter-spacing="-5">C4<tspan fill="#ff5c77">_</tspan></text>
+    <text x="44" y="229" fill="#c9d1d9" font-size="33" letter-spacing="-1">The control plane.</text>
+    <text x="44" y="285" fill="#aab4c0" font-size="15" letter-spacing="1.3">GO / COMPOSE / GRAPHQL</text>
+  </g>
+  <g fill="none" stroke-linejoin="round">
+    <path d="M748 44H723V276H748M1128 44H1153V276H1128" stroke="#713449"/>
+    <path d="M938 40V280M760 160H1116" stroke="#713449" stroke-dasharray="3 7"/>
+    <path d="M813 90H1063V230H813Z" stroke="#713449"/>
+    <path d="M813 90L938 160L1063 90M813 230L938 160L1063 230" stroke="#ff5c77" stroke-width="1.5"/>
+    <rect x="890" y="112" width="96" height="96" rx="14" fill="#20141f" stroke="#ff5c77" stroke-width="2"/>
+    <g fill="#0d1117" stroke="#713449" stroke-width="1.5">
+      <rect x="791" y="68" width="44" height="44" rx="6"/>
+      <rect x="1041" y="68" width="44" height="44" rx="6"/>
+      <rect x="791" y="208" width="44" height="44" rx="6"/>
+      <rect x="1041" y="208" width="44" height="44" rx="6"/>
+    </g>
+    <path d="M803 90H823M813 80V100M1053 90H1073M1063 80V100M803 230H823M813 220V240M1053 230H1073M1063 220V240" stroke="#ff5c77" stroke-width="2"/>
+  </g>
+  <text x="938" y="172" text-anchor="middle" fill="#f0f3f6" font-family="ui-monospace, 'DejaVu Sans Mono', monospace" font-size="34" font-weight="700">C4</text>
+</svg>

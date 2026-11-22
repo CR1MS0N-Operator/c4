@@ -1,12 +1,14 @@
 # C4 Architecture
 
-C4 is a CLI control center for deploying, managing, and destroying C2 frameworks (Mythic, Sliver) via Docker Compose.
+C4 is a CLI control center for Mythic and generic exec providers. Mythic uses Docker Compose for lifecycle operations and Hasura GraphQL for API operations. There is no dedicated Sliver provider, and Mythic destruction is not yet implemented.
+
+[Project overview](README.md) · [Usage guide](docs/USAGE.md) · [Contributing](CONTRIBUTING.md)
 
 ## Stack
 
-- **Language:** Go 1.26
+- **Language:** Go (see [go.mod](go.mod) for the required toolchain)
 - **CLI:** Cobra
-- **Infrastructure:** Docker Compose, Podman Quadlet
+- **Infrastructure:** Docker Compose
 - **Backend:** GraphQL (Hasura) for state management
 
 ## Structure
@@ -48,7 +50,7 @@ pkg/provider/interface.go
     └── ExecProvider      (pkg/execprovider/)
 ```
 
-New C2 frameworks implement the `provider.Provider` interface without touching CLI code.
+The `provider.Provider` interface defines the shared contract. Current CLI lifecycle commands dispatch explicitly to Mythic or configured exec providers; a new native provider also needs CLI wiring. The standalone `start` and `stop` commands currently support only Mythic.
 
 ## Data flow
 
