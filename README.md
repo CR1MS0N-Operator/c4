@@ -60,6 +60,24 @@ c4 destroy mythic
 | `c4 config`        | Manage C4 configuration (`init`, `set`, `view`) |
 | `c4 detect`        | Auto-detect installed C2 frameworks      |
 
+## Mythic TLS
+
+C4 sends the Hasura admin secret on every Mythic request, so with `ssl = true` it verifies the server certificate and refuses to connect when the check fails. Mythic ships a self-signed certificate; trust it with exactly one of these `[mythic]` settings in `~/.c4/c4.toml`:
+
+| Setting | Effect |
+|---------|--------|
+| `cert_fingerprint = "<sha256>"` | Pin the server certificate by SHA-256 fingerprint. Works for certificates without a matching hostname/IP. |
+| `ca_file = "/path/ca.pem"` | Verify against this PEM bundle instead of the system trust store. |
+| `insecure_skip_verify = true` | Disable verification. Anyone on the network path can read the admin secret. |
+
+Read the fingerprint from the certificate file on the Mythic host, not over the network:
+
+```bash
+openssl x509 -in <mythic-cert.pem> -noout -fingerprint -sha256
+```
+
+C4 no longer retries on `server_port` when `api_port` fails. Set `server_port_fallback = true` to re-enable the retry; it uses the same scheme and TLS settings as `api_port`.
+
 ## Architecture
 
 See [ARCHITECTURE.md](ARCHITECTURE.md) for the package layout, provider abstraction, and data flow.

@@ -4,6 +4,8 @@ package mythic
 import (
 	"context"
 	"fmt"
+	"net"
+	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -35,31 +37,40 @@ func (p *MythicProvider) Name() string {
 	return p.name
 }
 
-// endpoint returns the GraphQL URL for the given config.
-func endpoint(cfg config.C2Config) string {
+// endpoint returns the GraphQL URL for the given config and port.
+func endpoint(cfg config.C2Config, port int) string {
 	scheme := "http"
 	if cfg.SSL {
 		scheme = "https"
 	}
-	return fmt.Sprintf("%s://%s:%d/graphql/", scheme, cfg.Host, cfg.APIPort)
+	return fmt.Sprintf("%s://%s/graphql/", scheme, net.JoinHostPort(cfg.Host, strconv.Itoa(port)))
 }
 
 // Connect establishes a connection to the Mythic server.
 // For Mythic v3 (Hasura-backed), it uses the x-hasura-admin-secret for auth.
 func (p *MythicProvider) Connect(ctx context.Context) error {
-	ep := endpoint(p.cfg)
+	switch {
+	case !p.cfg.SSL && !isLoopback(p.cfg.Host):
+		p.warnf("ssl is disabled; the Hasura admin secret is sent to %s in clear text", p.cfg.Host)
+	case p.cfg.SSL && p.cfg.InsecureSkipVerify:
+		p.warnf("TLS certificate verification is disabled (insecure_skip_verify); the Hasura admin secret can be intercepted")
+	}
+
+	ep := endpoint(p.cfg, p.cfg.APIPort)
 
 	// Try primary endpoint first (nginx on api_port)
-	client, err := p.tryConnect(ctx, ep, p.cfg.HasuraSecret)
+	client, err := p.tryConnect(ctx, ep)
 	if err == nil {
 		p.client = client
 		return nil
 	}
 
-	// If primary fails and we have a server_port, try direct backend as fallback
-	if p.cfg.ServerPort > 0 && p.cfg.ServerPort != p.cfg.APIPort {
-		fallbackEp := fmt.Sprintf("http://%s:%d/graphql/", p.cfg.Host, p.cfg.ServerPort)
-		fallbackClient, fbErr := p.tryConnect(ctx, fallbackEp, p.cfg.HasuraSecret)
+	// The direct backend on server_port is only tried when explicitly enabled,
+	// and with the same scheme and TLS settings as the primary.
+	if p.cfg.ServerPortFallback && p.cfg.ServerPort > 0 && p.cfg.ServerPort != p.cfg.APIPort {
+		fallbackEp := endpoint(p.cfg, p.cfg.ServerPort)
+		p.warnf("primary endpoint %s failed (%v); falling back to %s (server_port_fallback)", ep, err, fallbackEp)
+		fallbackClient, fbErr := p.tryConnect(ctx, fallbackEp)
 		if fbErr == nil {
 			p.client = fallbackClient
 			return nil
@@ -70,10 +81,29 @@ func (p *MythicProvider) Connect(ctx context.Context) error {
 	return fmt.Errorf("connect to %s: %w", ep, err)
 }
 
+func (p *MythicProvider) warnf(format string, args ...any) {
+	fmt.Fprintf(os.Stderr, "warning: mythic: "+format+"\n", args...)
+}
+
+func isLoopback(host string) bool {
+	if host == "localhost" {
+		return true
+	}
+	ip := net.ParseIP(host)
+	return ip != nil && ip.IsLoopback()
+}
+
 // tryConnect attempts to create a client and verify connectivity.
-func (p *MythicProvider) tryConnect(ctx context.Context, endpoint, secret string) (*graphql.Client, error) {
+func (p *MythicProvider) tryConnect(ctx context.Context, endpoint string) (*graphql.Client, error) {
 	timeout := 10 * time.Second
-	client := graphql.NewClient(endpoint, secret, true, timeout)
+	client, err := graphql.NewClient(endpoint, p.cfg.HasuraSecret, graphql.TLSOptions{
+		CAFile:             p.cfg.CAFile,
+		CertFingerprint:    p.cfg.CertFingerprint,
+		InsecureSkipVerify: p.cfg.InsecureSkipVerify,
+	}, timeout)
+	if err != nil {
+		return nil, err
+	}
 
 	// Verify connectivity with a simple query
 	var resp struct {
