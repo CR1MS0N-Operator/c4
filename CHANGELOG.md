@@ -18,8 +18,11 @@ All notable changes to C4. Format follows [Keep a Changelog](https://keepachange
 - Mythic connections now verify the server's TLS certificate instead of accepting any certificate. Mythic ships a self-signed certificate, so set `cert_fingerprint` or `ca_file` under `[mythic]` (or `insecure_skip_verify = true` to opt out) — see README "Mythic TLS"
 - Removed the silent plain-HTTP retry on `server_port`. The retry is now opt-in (`server_port_fallback = true`), uses the same scheme and TLS settings as `api_port`, and prints a warning
 - The GraphQL client no longer follows redirects to another origin, so `x-hasura-admin-secret` is never forwarded
+- `c4.toml` is always written with mode `0600` (`c4 config set` and `config.Save` used `0644`), an existing file is tightened on rewrite, and C4 creates `~/.c4` and `~/.c4/providers` with mode `0700`
+- `c4 config set` no longer takes a value on the command line for keys containing `secret`: omit the value to be prompted without echo, or pass `-` to read it from stdin. The value is not printed back
 
 ### Fixed
+- `c4 config set` keeps the other keys in `c4.toml` instead of rewriting the file with only the key being set
 - `c4 detect` now returns an empty result set instead of nil — `c4 detect --json` emits `[]` rather than `null` when nothing is found
 
 ## [0.1.0] — 2026-07-26

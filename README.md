@@ -60,6 +60,15 @@ c4 destroy mythic
 | `c4 config`        | Manage C4 configuration (`init`, `set`, `view`) |
 | `c4 detect`        | Auto-detect installed C2 frameworks      |
 
+### Setting the Hasura secret
+
+`c4.toml` holds the Hasura admin secret, so C4 writes it with mode `0600` and creates `~/.c4` with mode `0700`. `c4 config set` refuses a value on the command line for any key containing `secret` (it would show in the process list and shell history) and never prints it back:
+
+```bash
+c4 config set mythic.hasura_secret                            # prompts, no echo
+printf '%s' "$SECRET" | c4 config set mythic.hasura_secret -  # reads stdin
+```
+
 ## Mythic TLS
 
 C4 sends the Hasura admin secret on every Mythic request, so with `ssl = true` it verifies the server certificate and refuses to connect when the check fails. Mythic ships a self-signed certificate; trust it with exactly one of these `[mythic]` settings in `~/.c4/c4.toml`:

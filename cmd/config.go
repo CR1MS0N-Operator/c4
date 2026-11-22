@@ -1,13 +1,16 @@
 package cmd
 
 import (
+	"bufio"
+	"errors"
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/CR1MS0N-Operator/c4/pkg/config"
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 )
 
 // configCmd manages C4 configuration.
@@ -41,19 +44,72 @@ var configInitCmd = &cobra.Command{
 
 // configSetCmd sets a config value.
 var configSetCmd = &cobra.Command{
-	Use:   "set <key> <value>",
+	Use:   "set <key> [value|-]",
 	Short: "Set a config value",
-	Args:  cobra.ExactArgs(2),
+	Long: `Set a config value in the config file, keeping all other keys.
+
+If value is omitted or "-", it is read from stdin (prompted for, without echo,
+on a terminal). Keys containing "secret" must be given this way so the value
+never appears in the process list or shell history, and their value is not
+printed.`,
+	Example: `  c4 config set mythic.host 10.0.0.5
+  c4 config set mythic.hasura_secret            # prompts without echo
+  printf '%s' "$SECRET" | c4 config set mythic.hasura_secret -`,
+	Args: cobra.RangeArgs(1, 2),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		key := args[0]
-		value := args[1]
-		viper.Set(key, value)
-		if err := viper.WriteConfig(); err != nil {
-			return fmt.Errorf("failed to write config: %w", err)
+		secret := isSecretKey(key)
+
+		var value string
+		if len(args) == 2 && args[1] != "-" {
+			if secret {
+				return fmt.Errorf("refusing to take %q from the command line; omit the value to be prompted, or pipe it on stdin with \"-\"", key)
+			}
+			value = args[1]
+		} else {
+			v, err := readValue(os.Stdin, key)
+			if err != nil {
+				return err
+			}
+			value = v
 		}
-		fmt.Printf("Set %s = %s\n", key, value)
+
+		if err := config.Set(cfgFile, key, value); err != nil {
+			return err
+		}
+		if secret {
+			fmt.Printf("Set %s (value hidden)\n", key)
+		} else {
+			fmt.Printf("Set %s = %s\n", key, value)
+		}
 		return nil
 	},
+}
+
+func isSecretKey(key string) bool {
+	return strings.Contains(strings.ToLower(key), "secret")
+}
+
+// readValue reads a config value from in, prompting without echo when in is
+// a terminal.
+func readValue(in *os.File, key string) (string, error) {
+	if isTerminal(in) {
+		return readHidden(in, fmt.Sprintf("Value for %s: ", key))
+	}
+	return readLine(bufio.NewReader(in))
+}
+
+// readLine reads one line from r without its trailing line ending.
+func readLine(r *bufio.Reader) (string, error) {
+	line, err := r.ReadString('\n')
+	if err != nil && !errors.Is(err, io.EOF) {
+		return "", fmt.Errorf("failed to read value: %w", err)
+	}
+	line = strings.TrimRight(line, "\r\n")
+	if line == "" {
+		return "", errors.New("no value given")
+	}
+	return line, nil
 }
 
 // configViewCmd prints the current config.

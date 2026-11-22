@@ -9,6 +9,13 @@ import (
 	"github.com/spf13/viper"
 )
 
+const (
+	// FileMode is the mode of the config file; it holds the Hasura admin secret.
+	FileMode os.FileMode = 0o600
+	// DirMode is the mode of directories c4 creates for its config.
+	DirMode os.FileMode = 0o700
+)
+
 // Config is the top-level C4 configuration structure.
 type Config struct {
 	Defaults DefaultsConfig `mapstructure:"defaults"`
@@ -129,11 +136,6 @@ func Save(path string, cfg *Config) error {
 		return fmt.Errorf("config is nil")
 	}
 
-	dir := filepath.Dir(path)
-	if err := os.MkdirAll(dir, 0o755); err != nil {
-		return fmt.Errorf("failed to create config directory %q: %w", dir, err)
-	}
-
 	v := viper.New()
 	v.SetConfigType("toml")
 	if err := v.MergeConfigMap(map[string]any{
@@ -164,8 +166,51 @@ func Save(path string, cfg *Config) error {
 		return fmt.Errorf("failed to merge config map: %w", err)
 	}
 
+	return write(v, path)
+}
+
+// Set updates a single key in the config file at path, keeping every other
+// key already in the file. The file is created if it does not exist.
+func Set(path, key string, value any) error {
+	v := viper.New()
+	v.SetConfigType("toml")
+	v.SetConfigFile(path)
+	if _, err := os.Stat(path); err == nil {
+		if err := v.ReadInConfig(); err != nil {
+			return fmt.Errorf("failed to read config %q: %w", path, err)
+		}
+	} else if !os.IsNotExist(err) {
+		return fmt.Errorf("failed to stat config path %q: %w", path, err)
+	}
+	v.Set(key, value)
+	return write(v, path)
+}
+
+// write writes v to path with FileMode, tightening an existing file's mode
+// before its contents are replaced.
+func write(v *viper.Viper, path string) error {
+	dir := filepath.Dir(path)
+	if err := EnsureDir(dir); err != nil {
+		return err
+	}
+	if err := os.Chmod(path, FileMode); err != nil && !os.IsNotExist(err) {
+		return fmt.Errorf("failed to set permissions on config %q: %w", path, err)
+	}
+	v.SetConfigPermissions(FileMode)
 	if err := v.WriteConfigAs(path); err != nil {
 		return fmt.Errorf("failed to write config %q: %w", path, err)
+	}
+	if err := os.Chmod(path, FileMode); err != nil {
+		return fmt.Errorf("failed to set permissions on config %q: %w", path, err)
+	}
+	return nil
+}
+
+// EnsureDir creates dir and any missing parents with DirMode. Existing
+// directories keep their mode.
+func EnsureDir(dir string) error {
+	if err := os.MkdirAll(dir, DirMode); err != nil {
+		return fmt.Errorf("failed to create config directory %q: %w", dir, err)
 	}
 	return nil
 }
@@ -182,11 +227,11 @@ func Init(path string) error {
 	dir := filepath.Dir(path)
 	providersDir := filepath.Join(dir, "providers")
 
-	if err := os.MkdirAll(providersDir, 0o755); err != nil {
-		return fmt.Errorf("failed to create providers directory %q: %w", providersDir, err)
+	if err := EnsureDir(providersDir); err != nil {
+		return err
 	}
 
-	if err := os.WriteFile(path, []byte(defaultConfigText), 0o600); err != nil {
+	if err := os.WriteFile(path, []byte(defaultConfigText), FileMode); err != nil {
 		return fmt.Errorf("failed to write config %q: %w", path, err)
 	}
 	return nil

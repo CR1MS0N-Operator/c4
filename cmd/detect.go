@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"time"
 
+	"github.com/CR1MS0N-Operator/c4/pkg/config"
 	"github.com/CR1MS0N-Operator/c4/pkg/detect"
 	"github.com/CR1MS0N-Operator/c4/pkg/provider"
 	"github.com/spf13/cobra"
@@ -74,7 +75,7 @@ func applyDetect(results []detect.DetectionResult) error {
 	}
 
 	providersDir := filepath.Join(home, ".c4", "providers")
-	if err := os.MkdirAll(providersDir, 0o755); err != nil {
+	if err := config.EnsureDir(providersDir); err != nil {
 		return fmt.Errorf("create providers dir: %w", err)
 	}
 
