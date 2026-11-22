@@ -13,9 +13,9 @@ import (
 )
 
 func printHealthTable(log zerolog.Logger, name, c2Type, status, host, version, message string) {
-	fmt.Printf("%-16s %-10s %-12s %-22s %-10s\n", name, c2Type, status, host, version)
+	fmt.Printf("%-16s %-10s %-12s %-22s %-10s\n", sanitizeField(name), sanitizeField(c2Type), sanitizeField(status), sanitizeField(host), sanitizeField(version))
 	if message != "" {
-		fmt.Printf("  └─ %s\n", message)
+		fmt.Printf("  └─ %s\n", sanitizeField(message))
 	}
 }
 
