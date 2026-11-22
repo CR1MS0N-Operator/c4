@@ -32,6 +32,14 @@ type C2Config struct {
 	LocalPath    string `mapstructure:"local_path"`
 	DataDir      string `mapstructure:"data_dir"`
 	Version      string `mapstructure:"version"`
+
+	// CAFile and CertFingerprint trust a certificate the system store does
+	// not (Mythic ships self-signed); InsecureSkipVerify disables the check.
+	CAFile             string `mapstructure:"ca_file"`
+	CertFingerprint    string `mapstructure:"cert_fingerprint"`
+	InsecureSkipVerify bool   `mapstructure:"insecure_skip_verify"`
+	// ServerPortFallback retries on server_port when api_port fails.
+	ServerPortFallback bool `mapstructure:"server_port_fallback"`
 }
 
 // DockerConfig contains Docker daemon and compose directory settings.
@@ -83,6 +91,12 @@ api_port = 7443
 server_port = 17443
 hasura_secret = ""
 ssl = true
+# The server certificate is verified. Mythic ships a self-signed one, so trust
+# it with exactly one of:
+#   cert_fingerprint = "<SHA-256 fingerprint of the server certificate>"
+#   ca_file = "/path/to/ca-or-server-cert.pem"
+#   insecure_skip_verify = true   # no verification; exposes hasura_secret to interception
+# server_port_fallback = true     # retry on server_port (same scheme) if api_port fails
 local_path = "~/Tools/c2/mythic"
 data_dir = "~/.c4/data/mythic"
 version = "latest"
@@ -136,6 +150,11 @@ func Save(path string, cfg *Config) error {
 			"local_path":    cfg.Mythic.LocalPath,
 			"data_dir":      cfg.Mythic.DataDir,
 			"version":       cfg.Mythic.Version,
+
+			"ca_file":              cfg.Mythic.CAFile,
+			"cert_fingerprint":     cfg.Mythic.CertFingerprint,
+			"insecure_skip_verify": cfg.Mythic.InsecureSkipVerify,
+			"server_port_fallback": cfg.Mythic.ServerPortFallback,
 		},
 		"docker": map[string]any{
 			"socket":      cfg.Docker.Socket,
