@@ -2,14 +2,19 @@ package mythic
 
 import (
 	"context"
+	"encoding/json"
 	"net"
 	"net/http"
 	"net/http/httptest"
 	"strconv"
+	"strings"
 	"sync/atomic"
 	"testing"
+	"time"
 
 	"github.com/CR1MS0N-Operator/c4/pkg/config"
+	"github.com/CR1MS0N-Operator/c4/pkg/graphql"
+	"github.com/CR1MS0N-Operator/c4/pkg/provider"
 )
 
 func operatorHandler(hits *atomic.Int32) http.Handler {
@@ -101,4 +106,55 @@ func TestConnectServerPortFallback(t *testing.T) {
 			t.Fatal("fallback endpoint not used")
 		}
 	})
+}
+
+func TestStartListenerSendsNameAsVariable(t *testing.T) {
+	const name = `a\"}) { id } x: __typename #`
+
+	type gqlRequest struct {
+		Query     string         `json:"query"`
+		Variables map[string]any `json:"variables"`
+	}
+	var reqs []gqlRequest
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		var req gqlRequest
+		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+			t.Errorf("decode request: %v", err)
+		}
+		reqs = append(reqs, req)
+		if strings.Contains(req.Query, "insert_c2profile_one") {
+			_, _ = w.Write([]byte(`{"data":{"insert_c2profile_one":{"id":7,"name":"n","running":false}}}`))
+			return
+		}
+		_, _ = w.Write([]byte(`{"data":{"c2profile":[]}}`))
+	}))
+	defer srv.Close()
+
+	client, err := graphql.NewClient(srv.URL+"/graphql/", "s", graphql.TLSOptions{}, 5*time.Second)
+	if err != nil {
+		t.Fatal(err)
+	}
+	p := &MythicProvider{name: "mythic", client: client}
+	if _, err := p.StartListener(context.Background(), provider.Listener{Name: name}); err != nil {
+		t.Fatalf("StartListener: %v", err)
+	}
+
+	if len(reqs) != 2 {
+		t.Fatalf("got %d requests, want 2", len(reqs))
+	}
+	wantQueries := []string{
+		`query($name: String!) { c2profile(where: {name: {_eq: $name}}) { id name running } }`,
+		`mutation($name: String!, $description: String!) { insert_c2profile_one(object: {name: $name, description: $description}) { id name running } }`,
+	}
+	for i, req := range reqs {
+		if req.Query != wantQueries[i] {
+			t.Errorf("request %d query is not the constant document: %s", i, req.Query)
+		}
+		if req.Variables["name"] != name {
+			t.Errorf("variables.name = %v, want %q", req.Variables["name"], name)
+		}
+	}
+	if want := "Managed by C4 — " + name; reqs[1].Variables["description"] != want {
+		t.Errorf("variables.description = %v, want %q", reqs[1].Variables["description"], want)
+	}
 }
