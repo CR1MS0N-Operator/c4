@@ -7,3 +7,19 @@ node_modules/
  dist/
 
 *.log
+
+# --- Harness-state ignores (preventive, 2026-09-28) ---
+# Mutable per-harness agent state only. Do NOT ignore .agents/ — that is
+# portable, version-controlled skill config (.agents/skills/beads/SKILL.md).
+.omp/
+.cline/
+.freebuff/
+.commandcode/taste/
+.hermes/
+.pi/
+.opencode/
+
+# Environment files may carry credentials
+.env
+.env.*
+!.env.example
