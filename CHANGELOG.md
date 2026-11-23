@@ -14,6 +14,11 @@ All notable changes to C4. Format follows [Keep a Changelog](https://keepachange
 ### Changed
 - Go and License badges switched to `flat-square` style
 
+### Security
+- Mythic connections now verify the server's TLS certificate instead of accepting any certificate. Mythic ships a self-signed certificate, so set `cert_fingerprint` or `ca_file` under `[mythic]` (or `insecure_skip_verify = true` to opt out) — see README "Mythic TLS"
+- Removed the silent plain-HTTP retry on `server_port`. The retry is now opt-in (`server_port_fallback = true`), uses the same scheme and TLS settings as `api_port`, and prints a warning
+- The GraphQL client no longer follows redirects to another origin, so `x-hasura-admin-secret` is never forwarded
+
 ### Fixed
 - `c4 detect` now returns an empty result set instead of nil — `c4 detect --json` emits `[]` rather than `null` when nothing is found
 
