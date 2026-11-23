@@ -21,7 +21,7 @@ func printCallbackTable(callbacks []provider.Callback) {
 	fmt.Printf("%-6s %-20s %-16s %-12s %-6s %-12s\n", "ID", "AGENT", "HOST", "USER", "PID", "STATUS")
 	fmt.Println("────────────────────────────────────────────────────────────────────────────")
 	for _, c := range callbacks {
-		fmt.Printf("%-6s %-20s %-16s %-12s %-6d %-12s\n", c.ID, c.Agent, c.Host, c.User, c.PID, c.Status)
+		fmt.Printf("%-6s %-20s %-16s %-12s %-6d %-12s\n", sanitizeField(c.ID), sanitizeField(c.Agent), sanitizeField(c.Host), sanitizeField(c.User), c.PID, sanitizeField(string(c.Status)))
 	}
 }
 

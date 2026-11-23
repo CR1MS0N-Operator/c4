@@ -36,7 +36,7 @@ func printListenerTable(listeners []provider.Listener) {
 	fmt.Printf("%-4s %-24s %-12s %-10s %-6s %-10s\n", "ID", "NAME", "TYPE", "STATUS", "PORT", "PROVIDER")
 	fmt.Println("──────────────────────────────────────────────────────────────────────────────")
 	for _, l := range listeners {
-		fmt.Printf("%-4s %-24s %-12s %-10s %-6d %-10s\n", l.ID, l.Name, l.Type, l.Status, l.Port, l.Provider)
+		fmt.Printf("%-4s %-24s %-12s %-10s %-6d %-10s\n", sanitizeField(l.ID), sanitizeField(l.Name), sanitizeField(l.Type), sanitizeField(string(l.Status)), l.Port, sanitizeField(string(l.Provider)))
 	}
 }
 

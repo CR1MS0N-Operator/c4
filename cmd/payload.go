@@ -21,7 +21,7 @@ func printPayloadTable(payloads []provider.Payload) {
 	fmt.Printf("%-6s %-30s %-16s %-12s %-36s\n", "ID", "NAME", "TYPE", "FORMAT", "UUID")
 	fmt.Println("──────────────────────────────────────────────────────────────────────────────────────────────")
 	for _, p := range payloads {
-		fmt.Printf("%-6s %-30s %-16s %-12s %-36s\n", p.ID, p.Name, p.Type, p.Format, p.FilePath)
+		fmt.Printf("%-6s %-30s %-16s %-12s %-36s\n", sanitizeField(p.ID), sanitizeField(p.Name), sanitizeField(p.Type), sanitizeField(p.Format), sanitizeField(p.FilePath))
 	}
 }
 
