@@ -8,6 +8,7 @@ import (
 	"net/http/httptest"
 	"strconv"
 	"strings"
+	"sync"
 	"sync/atomic"
 	"testing"
 	"time"
@@ -115,13 +116,16 @@ func TestStartListenerSendsNameAsVariable(t *testing.T) {
 		Query     string         `json:"query"`
 		Variables map[string]any `json:"variables"`
 	}
+	var mu sync.Mutex
 	var reqs []gqlRequest
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		var req gqlRequest
 		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 			t.Errorf("decode request: %v", err)
 		}
+		mu.Lock()
 		reqs = append(reqs, req)
+		mu.Unlock()
 		if strings.Contains(req.Query, "insert_c2profile_one") {
 			_, _ = w.Write([]byte(`{"data":{"insert_c2profile_one":{"id":7,"name":"n","running":false}}}`))
 			return
@@ -139,6 +143,8 @@ func TestStartListenerSendsNameAsVariable(t *testing.T) {
 		t.Fatalf("StartListener: %v", err)
 	}
 
+	mu.Lock()
+	defer mu.Unlock()
 	if len(reqs) != 2 {
 		t.Fatalf("got %d requests, want 2", len(reqs))
 	}
