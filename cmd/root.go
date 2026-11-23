@@ -10,7 +10,6 @@ import (
 	"github.com/CR1MS0N-Operator/c4/pkg/config"
 	"github.com/rs/zerolog"
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 )
 
 var (
@@ -62,8 +61,6 @@ var rootCmd = &cobra.Command{
 		} else {
 			return fmt.Errorf("failed to stat config %q: %w", cfgFile, err)
 		}
-
-		viper.SetConfigFile(cfgFile)
 		return nil
 	},
 }

@@ -31,6 +31,15 @@ Edit the generated TOML file before connecting to Mythic:
 
 See [Mythic TLS](#mythic-tls) before sending the admin secret. An alternative configuration path can be selected with `c4 --config /path/to/c4.toml <command>`.
 
+### Setting the Hasura secret
+
+`c4.toml` holds the Hasura admin secret, so C4 writes it with mode `0600` and creates `~/.c4` with mode `0700`. `c4 config set` refuses a value on the command line for any key containing `secret` (it would show in the process list and shell history) and never prints it back:
+
+```bash
+c4 config set mythic.hasura_secret                            # prompts, no echo
+printf '%s' "$SECRET" | c4 config set mythic.hasura_secret -  # reads stdin
+```
+
 Inspect status after configuring the connection:
 
 ```bash
