@@ -7,7 +7,6 @@ import (
 	"net"
 	"os"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/CR1MS0N-Operator/c4/pkg/config"
@@ -115,7 +114,7 @@ func (p *MythicProvider) tryConnect(ctx context.Context, endpoint string) (*grap
 			} `json:"operator"`
 		} `json:"data"`
 	}
-	if err := client.Do(ctx, `{ operator { id username current_operation_id } }`, &resp); err != nil {
+	if err := client.Do(ctx, `{ operator { id username current_operation_id } }`, nil, &resp); err != nil {
 		return nil, err
 	}
 	if len(resp.Data.Operator) == 0 {
@@ -163,7 +162,7 @@ func (p *MythicProvider) Health(ctx context.Context) (*provider.HealthCheckResul
 	}
 
 	var resp meResponse
-	if err := p.client.Do(ctx, `{ operator { id username current_operation_id } }`, &resp); err != nil {
+	if err := p.client.Do(ctx, `{ operator { id username current_operation_id } }`, nil, &resp); err != nil {
 		return &provider.HealthCheckResult{
 			Healthy:   false,
 			Message:   fmt.Sprintf("health check failed: %s", err.Error()),
@@ -210,7 +209,7 @@ func (p *MythicProvider) Listeners(ctx context.Context) ([]provider.Listener, er
 	}
 
 	var resp c2profileResponse
-	if err := p.client.Do(ctx, `{ c2profile(where: {deleted: {_eq: false}}) { id name running container_running description semver } }`, &resp); err != nil {
+	if err := p.client.Do(ctx, `{ c2profile(where: {deleted: {_eq: false}}) { id name running container_running description semver } }`, nil, &resp); err != nil {
 		return []provider.Listener{}, fmt.Errorf("list listeners: %w", err)
 	}
 
@@ -246,7 +245,7 @@ func (p *MythicProvider) StartListener(ctx context.Context, l provider.Listener)
 			C2Profiles []c2profile `json:"c2profile"`
 		} `json:"data"`
 	}
-	if err := p.client.Do(ctx, fmt.Sprintf(`{ c2profile(where: {name: {_eq: "%s"}}) { id name running } }`, l.Name), &lookup); err != nil {
+	if err := p.client.Do(ctx, `query($name: String!) { c2profile(where: {name: {_eq: $name}}) { id name running } }`, map[string]any{"name": l.Name}, &lookup); err != nil {
 		return nil, fmt.Errorf("lookup listener %q: %w", l.Name, err)
 	}
 
@@ -260,7 +259,7 @@ func (p *MythicProvider) StartListener(ctx context.Context, l provider.Listener)
 				Result c2profile `json:"update_c2profile_by_pk"`
 			} `json:"data"`
 		}
-		if err := p.client.Do(ctx, fmt.Sprintf(`mutation { update_c2profile_by_pk(pk_columns: {id: %d}, _set: {running: true}) { id name running } }`, existing.ID), &updResp); err != nil {
+		if err := p.client.Do(ctx, fmt.Sprintf(`mutation { update_c2profile_by_pk(pk_columns: {id: %d}, _set: {running: true}) { id name running } }`, existing.ID), nil, &updResp); err != nil {
 			return nil, fmt.Errorf("start listener %q: %w", l.Name, err)
 		}
 		updated = updResp.Data.Result
@@ -275,13 +274,9 @@ func (p *MythicProvider) StartListener(ctx context.Context, l provider.Listener)
 				Result c2profile `json:"insert_c2profile_one"`
 			} `json:"data"`
 		}
-		if err := p.client.Do(ctx, fmt.Sprintf(`mutation { insert_c2profile_one(object: {name: "%s", description: "%s"}) { id name running } }`, l.Name, desc), &insResp); err != nil {
-			// GraphQL escape common issues — strip quotes in name/desc
-			safeName := strings.ReplaceAll(l.Name, `"`, `\"`)
-			safeDesc := strings.ReplaceAll(desc, `"`, `\"`)
-			if err := p.client.Do(ctx, fmt.Sprintf(`mutation { insert_c2profile_one(object: {name: "%s", description: "%s"}) { id name running } }`, safeName, safeDesc), &insResp); err != nil {
-				return nil, fmt.Errorf("create listener %q: %w", l.Name, err)
-			}
+		vars := map[string]any{"name": l.Name, "description": desc}
+		if err := p.client.Do(ctx, `mutation($name: String!, $description: String!) { insert_c2profile_one(object: {name: $name, description: $description}) { id name running } }`, vars, &insResp); err != nil {
+			return nil, fmt.Errorf("create listener %q: %w", l.Name, err)
 		}
 		updated = insResp.Data.Result
 	}
@@ -313,7 +308,7 @@ func (p *MythicProvider) StopListener(ctx context.Context, id string) error {
 			Result c2profile `json:"update_c2profile_by_pk"`
 		} `json:"data"`
 	}
-	if err := p.client.Do(ctx, fmt.Sprintf(`mutation { update_c2profile_by_pk(pk_columns: {id: %d}, _set: {running: false}) { id name running } }`, intID), &resp); err != nil {
+	if err := p.client.Do(ctx, fmt.Sprintf(`mutation { update_c2profile_by_pk(pk_columns: {id: %d}, _set: {running: false}) { id name running } }`, intID), nil, &resp); err != nil {
 		return fmt.Errorf("stop listener %s: %w", id, err)
 	}
 
@@ -371,7 +366,7 @@ func (p *MythicProvider) Callbacks(ctx context.Context) ([]provider.Callback, er
 	}
 
 	var resp callbackResponse
-	if err := p.client.Do(ctx, `{ callback(where: {active: {_eq: true}}, order_by: {last_checkin: desc}) { id display_id ip host user process_name pid os architecture last_checkin sleep_info description domain } }`, &resp); err != nil {
+	if err := p.client.Do(ctx, `{ callback(where: {active: {_eq: true}}, order_by: {last_checkin: desc}) { id display_id ip host user process_name pid os architecture last_checkin sleep_info description domain } }`, nil, &resp); err != nil {
 		return []provider.Callback{}, fmt.Errorf("list callbacks: %w", err)
 	}
 
@@ -398,7 +393,7 @@ func (p *MythicProvider) Payloads(ctx context.Context) ([]provider.Payload, erro
 	}
 
 	var resp payloadResponse
-	if err := p.client.Do(ctx, `{ payload { id uuid description auto_generated build_phase payload_type_semver os creation_time } }`, &resp); err != nil {
+	if err := p.client.Do(ctx, `{ payload { id uuid description auto_generated build_phase payload_type_semver os creation_time } }`, nil, &resp); err != nil {
 		return []provider.Payload{}, fmt.Errorf("list payloads: %w", err)
 	}
 

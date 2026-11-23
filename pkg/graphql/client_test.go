@@ -30,7 +30,7 @@ func do(t *testing.T, endpoint string, opts TLSOptions) error {
 		t.Fatalf("NewClient: %v", err)
 	}
 	var out map[string]any
-	return c.Do(context.Background(), `{ x }`, &out)
+	return c.Do(context.Background(), `{ x }`, nil, &out)
 }
 
 func fingerprint(srv *httptest.Server) string {

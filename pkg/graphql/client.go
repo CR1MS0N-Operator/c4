@@ -137,9 +137,13 @@ func parseFingerprint(s string) ([]byte, error) {
 }
 
 // Do executes a GraphQL query and unmarshals the response into the provided value.
+// Untrusted values must be passed in variables, never formatted into query.
 // The response value should be a pointer to a struct matching the GraphQL response shape.
-func (c *Client) Do(ctx context.Context, query string, response any) error {
-	body := map[string]string{"query": query}
+func (c *Client) Do(ctx context.Context, query string, variables map[string]any, response any) error {
+	body := map[string]any{"query": query}
+	if len(variables) > 0 {
+		body["variables"] = variables
+	}
 	payload, err := json.Marshal(body)
 	if err != nil {
 		return fmt.Errorf("marshal query: %w", err)
