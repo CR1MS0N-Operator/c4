@@ -22,10 +22,15 @@ func captureStdout(t *testing.T, fn func()) []byte {
 	defer func() { os.Stdout = orig }()
 
 	fn()
-	w.Close()
+	if err := w.Close(); err != nil {
+		t.Fatalf("close pipe writer: %v", err)
+	}
 	out, err := io.ReadAll(r)
 	if err != nil {
 		t.Fatalf("read: %v", err)
+	}
+	if err := r.Close(); err != nil {
+		t.Fatalf("close pipe reader: %v", err)
 	}
 	return out
 }
