@@ -186,22 +186,33 @@ func Set(path, key string, value any) error {
 	return write(v, path)
 }
 
-// write writes v to path with FileMode, tightening an existing file's mode
-// before its contents are replaced.
+// write writes v to path with FileMode. It writes to a temp file and renames
+// over path, so a local user holding an open fd on the old file cannot read
+// the new contents.
 func write(v *viper.Viper, path string) error {
 	dir := filepath.Dir(path)
 	if err := EnsureDir(dir); err != nil {
 		return err
 	}
-	if err := os.Chmod(path, FileMode); err != nil && !os.IsNotExist(err) {
-		return fmt.Errorf("failed to set permissions on config %q: %w", path, err)
+	tmp, err := os.CreateTemp(dir, ".c4-*.toml")
+	if err != nil {
+		return fmt.Errorf("failed to create temp config in %q: %w", dir, err)
 	}
-	v.SetConfigPermissions(FileMode)
-	if err := v.WriteConfigAs(path); err != nil {
+	tmpPath := tmp.Name()
+	if err := tmp.Close(); err != nil {
+		os.Remove(tmpPath)
 		return fmt.Errorf("failed to write config %q: %w", path, err)
 	}
-	if err := os.Chmod(path, FileMode); err != nil {
+	defer os.Remove(tmpPath)
+	v.SetConfigPermissions(FileMode)
+	if err := v.WriteConfigAs(tmpPath); err != nil {
+		return fmt.Errorf("failed to write config %q: %w", path, err)
+	}
+	if err := os.Chmod(tmpPath, FileMode); err != nil {
 		return fmt.Errorf("failed to set permissions on config %q: %w", path, err)
+	}
+	if err := os.Rename(tmpPath, path); err != nil {
+		return fmt.Errorf("failed to replace config %q: %w", path, err)
 	}
 	return nil
 }
