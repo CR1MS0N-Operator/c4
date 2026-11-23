@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"os/signal"
 	"syscall"
 	"unsafe"
 )
@@ -35,7 +36,25 @@ func readHidden(f *os.File, prompt string) (string, error) {
 	if err := ioctlTermios(fd, syscall.TCSETS, &noEcho); err != nil {
 		return "", fmt.Errorf("disable terminal echo: %w", err)
 	}
+
+	// A signal skips deferred restores; restore the terminal first, then
+	// re-raise so the process still dies with the signal.
+	sigCh := make(chan os.Signal, 1)
+	signal.Notify(sigCh, syscall.SIGINT, syscall.SIGTERM)
+	go func() {
+		s, ok := <-sigCh
+		if !ok {
+			return
+		}
+		_ = ioctlTermios(fd, syscall.TCSETS, &old)
+		sig := s.(syscall.Signal)
+		signal.Reset(sig)
+		_ = syscall.Kill(syscall.Getpid(), sig)
+	}()
+
 	defer func() {
+		signal.Stop(sigCh)
+		close(sigCh)
 		_ = ioctlTermios(fd, syscall.TCSETS, &old)
 		fmt.Fprintln(os.Stderr)
 	}()
